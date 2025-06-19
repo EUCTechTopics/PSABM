@@ -29,7 +29,7 @@ To use the SDK with your Apple Business Manager tenant, you must configure authe
 
    Replace `[clientID]`, and `[keyID]` with your specific values.
 
-2. **Connect to IdentityNow**
+2. **Connect to Apple Business Manager**
 
    Use the `Connect-ABM -KeyPath [path to your PEM file]` command to authenticate with the Apple Business Manager API.
 
