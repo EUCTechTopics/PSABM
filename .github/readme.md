@@ -14,7 +14,7 @@ Install-Module -Name PSABM -AllowPrerelease
 
 ### SDK Configuration for Authentication
 
-To use the SDK with your Apple Business Manager tenant, you must configure authentication by providing the required environment variables or using Azure Key Vault (or another vault) with the Microsoft.PowerShell.SecretManagement module.
+To use the SDK with your Apple Business Manager tenant, you must configure authentication by providing the required environment variables
 
 #### Option 1: Use Environment Variables
 
@@ -33,9 +33,7 @@ To use the SDK with your Apple Business Manager tenant, you must configure authe
 
    Use the `Connect-ABM -KeyPath [path to your PEM file]` command to authenticate with the Apple Business Manager API.
 
-
    ```powershell
-   # Using generic environment variables
    Connect-ABM -KeyPath '~/.abm/privkey.pem'
    ```
 
