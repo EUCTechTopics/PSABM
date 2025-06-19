@@ -5,6 +5,8 @@ function Get-ABMJWT {
         SupportsPaging = $False,
         PositionalBinding = $True)
     ]
+    [OutputType([string])]
+
     param (
         [Parameter(Mandatory = $true)]
         [String]
@@ -72,7 +74,7 @@ function Get-ABMJWT {
     $sha256 = [System.Security.Cryptography.SHA256]::Create()
     $hash = $sha256.ComputeHash($jwtBytes)
 
-    # Sign the hash — returns raw r||s signature
+    # Sign the hash returns raw r||s signature
     $rawSignature = $ecdsa.SignHash($hash)
 
     # Base64url encode the signature

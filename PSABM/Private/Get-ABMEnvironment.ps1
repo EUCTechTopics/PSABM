@@ -16,7 +16,7 @@ function Get-ABMEnvironment {
         [String]
         $KeyPath,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [ValidateSet("v1")]
         [String]
         $APIVersion = "v1",
