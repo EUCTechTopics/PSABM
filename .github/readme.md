@@ -20,7 +20,7 @@ To use the SDK with your Apple Business Manager tenant, you must configure authe
 
 1. **Set Environment Variables**
 
-   Set the following environment variables to authenticate to your IdentityNow tenant:
+   Set the following environment variables to authenticate to your Apple Business Manager tenant:
 
    ``` powershell
    $env:ABM_CLIENT_ID=[clientID]
