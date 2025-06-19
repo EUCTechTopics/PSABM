@@ -1,0 +1,1 @@
+Publish-Module -Path "./PSABM" -NuGetApiKey $Env:NUGET_API_KEY
