@@ -23,7 +23,7 @@ function Get-ABMJWT {
     # Replace these with your actual Apple values:
     $client_id = $ClientId
     $team_id = $ClientId
-    $key_id = $key_id
+    $key_id = $KeyId
     $audience = "https://account.apple.com/auth/oauth2/v2/token"
     $alg = "ES256"
 
@@ -61,8 +61,8 @@ function Get-ABMJWT {
     $headerJson = $header | ConvertTo-Json -Compress
     $payloadJson = $payload | ConvertTo-Json -Compress
 
-    $encodedHeader = ConvertTo-Base64Url ([System.Text.Encoding]::UTF8.GetBytes($headerJson))
-    $encodedPayload = ConvertTo-Base64Url ([System.Text.Encoding]::UTF8.GetBytes($payloadJson))
+    $encodedHeader = ConvertTo-Base64 ([System.Text.Encoding]::UTF8.GetBytes($headerJson))
+    $encodedPayload = ConvertTo-Base64 ([System.Text.Encoding]::UTF8.GetBytes($payloadJson))
 
     # Create the message to sign
     $jwtData = "$encodedHeader.$encodedPayload"
@@ -76,7 +76,7 @@ function Get-ABMJWT {
     $rawSignature = $ecdsa.SignHash($hash)
 
     # Base64url encode the signature
-    $encodedSignature = ConvertTo-Base64Url $rawSignature
+    $encodedSignature = ConvertTo-Base64 $rawSignature
 
     # Combine to final JWT
     $jwt = "$jwtData.$encodedSignature"

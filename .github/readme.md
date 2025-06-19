@@ -12,11 +12,11 @@ A PowerShell module to interact with the Apple Business Manager REST API.
 Install-Module -Name PSABM -AllowPrerelease
 ```
 
-### SDK Configuration for Authentication
+### SDK Configuration
 
 To use the SDK with your Apple Business Manager tenant, you must configure authentication by providing the required environment variables
 
-#### Option 1: Use Environment Variables
+#### Use Environment Variables
 
 1. **Set Environment Variables**
 
@@ -35,6 +35,14 @@ To use the SDK with your Apple Business Manager tenant, you must configure authe
 
    ```powershell
    Connect-ABM -KeyPath '~/.abm/privkey.pem'
+   ```
+
+3. **Retrieve Devices in Apple Business Manager**
+
+   Use the `Get-ABMObject` command to retrieve objects from the Apple Business Manager API.
+
+   ```powershell
+   Get-ABMObject -ObjectType 'orgDevices'
    ```
 
 ## Reporting Issues and Feedback

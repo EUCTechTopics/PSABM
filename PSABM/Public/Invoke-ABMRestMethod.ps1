@@ -8,9 +8,6 @@
     .PARAMETER Url
         The relative URL to call.
 
-    .PARAMETER UrlParams
-        The parameters to add to the URL.
-
     .PARAMETER Method
         The HTTP method to use.
 
@@ -47,10 +44,6 @@ function Invoke-ABMRestMethod {
         [Parameter(Mandatory = $true)]
         [String]
         $Url,
-
-        [Parameter(Mandatory = $false)]
-        [Hashtable]
-        $UrlParams,
 
         [Parameter(Mandatory = $false)]
         [ValidateSet("GET", "PATCH", "POST", "PUT", "DELETE")]
