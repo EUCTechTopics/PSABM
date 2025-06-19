@@ -12,11 +12,9 @@ A PowerShell module to interact with the Apple Business Manager REST API.
 Install-Module -Name PSABM -AllowPrerelease
 ```
 
-### SDK Configuration
+### Usage
 
 To use the SDK with your Apple Business Manager tenant, you must configure authentication by providing the required environment variables
-
-#### Use Environment Variables
 
 1. **Set Environment Variables**
 
