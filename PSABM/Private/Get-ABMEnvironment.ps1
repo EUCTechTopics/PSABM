@@ -19,11 +19,7 @@ function Get-ABMEnvironment {
         [Parameter(Mandatory = $false)]
         [ValidateSet("v1")]
         [String]
-        $APIVersion = "v1",
-
-        [Parameter(Mandatory = $true)]
-        [Switch]
-        $UseSecretManagement
+        $APIVersion = "v1"
     )
 
     switch ($Environment) {
@@ -40,8 +36,8 @@ function Get-ABMEnvironment {
     }
 
     # Set client_id, key_id needed to get JWT
-    $client_id = Get-ABMSecret -Name "$($Instance)-CLIENT-ID" -AsPlainText -UseSecretManagement:$UseSecretManagement
-    $key_id = Get-ABMSecret -Name "$($Instance)-KEY-ID" -AsPlainText -UseSecretManagement:$UseSecretManagement
+    $client_id = Get-ABMSecret -Name "$($Instance)-CLIENT-ID" -AsPlainText
+    $key_id = Get-ABMSecret -Name "$($Instance)-KEY-ID" -AsPlainText
 
     # Get JWT
     $client_assertion = Get-ABMJWT -ClientId $client_id -KeyId $key_id -KeyPath $KeyPath

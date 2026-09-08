@@ -20,18 +20,13 @@ function Connect-ABM {
         [Parameter(Mandatory = $false)]
         [ValidateSet("v1")]
         [String]
-        $APIVersion = 'v1',
-
-        [Parameter(Mandatory = $false)]
-        [Switch]
-        $UseSecretManagement = $false
+        $APIVersion = 'v1'
     )
 
     $Parameters = @{
         Environment         = $Environment
         KeyPath             = $KeyPath
         APIVersion          = $APIVersion
-        UseSecretManagement = $UseSecretManagement
     }
 
     $script:ABMEnv = Get-ABMEnvironment @Parameters
