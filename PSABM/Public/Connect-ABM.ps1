@@ -9,24 +9,29 @@ function Connect-ABM {
     param (
         [Parameter(Mandatory = $false)]
         [ValidateSet("Business Manager", "School Manager")]
-        [String]
-        $Environment = "Business Manager",
+        [String] $Environment = "Business Manager",
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true)]
         [ValidateScript({ Test-Path $_ })]
-        [String]
-        $KeyPath,
+        [String] $KeyPath,
+
+        [Parameter(Mandatory = $true)]
+        [String] $ClientId,
+
+        [Parameter(Mandatory = $true)]
+        [String] $KeyId,
 
         [Parameter(Mandatory = $false)]
         [ValidateSet("v1")]
-        [String]
-        $APIVersion = 'v1'
+        [String] $APIVersion = 'v1'
     )
 
     $Parameters = @{
         Environment         = $Environment
         KeyPath             = $KeyPath
         APIVersion          = $APIVersion
+        KeyId               = $KeyId
+        ClientId            = $ClientId
     }
 
     $script:ABMEnv = Get-ABMEnvironment @Parameters
