@@ -42,38 +42,29 @@ function Invoke-ABMRestMethod {
     ]
     param (
         [Parameter(Mandatory = $true)]
-        [String]
-        $Url,
+        [String] $Url,
 
         [Parameter(Mandatory = $false)]
         [ValidateSet("GET", "PATCH", "POST", "PUT", "DELETE")]
-        [String]
-        $Method = "GET",
+        [String] $Method = "GET",
 
         [Parameter(Mandatory = $false)]
-        [String]
-        $Body,
+        [String] $Body,
 
         [Parameter(Mandatory = $false)]
-        [String]
-        $ContentType = "application/json",
+        [String] $ContentType = "application/json",
 
         [Parameter(Mandatory = $false)]
-        [Int]
-        $MaxRetries = 3,
+        [Int] $MaxRetries = 3,
 
         [Parameter(Mandatory = $false)]
-        [Int]
-        $PauseDuration = 2
+        [Int] $PauseDuration = 2
     )
 
-    # Check if connected to ABM
     Test-ABMConnection
 
-    # Form complete URL
-    $Url = ("{0}{1}" -f $($script:ABMEnv.BaseAPIUrl), $Url)
+    $CurrentUrl = "{0}{1}" -f $script:ABMEnv.BaseAPIUrl, $Url
 
-    # Create authorization header
     $Token = ConvertFrom-SecureString $script:ABMEnv.SessionToken -AsPlainText
     $Headers = @{
         Authorization = "Bearer $Token"
@@ -85,68 +76,76 @@ function Invoke-ABMRestMethod {
         $ContentType = "application/json-patch+json"
     }
 
-    # Set initial variables
-    $SendCall = $true
-    $RetryCount = 0
-    $AllResults = @()
+    # Loop through pages and stream results directly to pipeline
+    while ($CurrentUrl) {
+        $RetryCount = 0
+        $PageSuccess = $false
 
-    # Try to fetch the page
-    while ($SendCall) {
-        try {
-            $Splat = @{
-                Uri             = $Url
-                UseBasicParsing = $true
-                Headers         = $Headers
-                Method          = $Method
-                ContentType     = $ContentType
-            }
-            if($Body) { $Splat.Add('Body', $Body) }
-            $response = Invoke-WebRequest @Splat -Verbose:$false -Debug:$false
-            Write-Verbose $response
-
-            # Parse and collect results
-            $Results = $Response.Content | ConvertFrom-Json
-            $AllResults += $Results.Data
-
-            $SendCall = $false
-        }
-        catch {
-            # Get the error message
+        while (-not $PageSuccess) {
             try {
-                # Try retrieving .messages[0].text
-                $errorDetails = $_.ErrorDetails | ConvertFrom-Json
-                if ($errorDetails.messages -and $errorDetails.messages[0].text) {
-                    $message = $errorDetails.messages[0].text
+                $Splat = @{
+                    Uri             = $CurrentUrl
+                    Headers         = $Headers
+                    Method          = $Method
+                    ContentType     = $ContentType
                 }
-                elseif ($errorDetails.error) {
-                    # Fallback to .error if .messages[0].text is not available
-                    $message = $errorDetails.error
+                if ($Body) { $Splat.Add('Body', $Body) }
+
+                # Directly returns deserialized JSON objects
+                $Results = Invoke-RestMethod @Splat -Verbose:$false -Debug:$false
+
+                # Stream results to pipeline immediately
+                if ($null -ne $Results.data) {
+                    $Results.data
+                } else {
+                    $Results
                 }
-                else {
-                    # Fallback message if neither is available
-                    $message = "Unknown error occurred"
+
+                # Evaluate JSON:API pagination link
+                if ($Method -eq "GET" -and $Results.links -and $Results.links.next) {
+                    $NextLink = $Results.links.next
+                    $CurrentUrl = if ($NextLink -like "http*") { $NextLink } else { "{0}{1}" -f $script:ABMEnv.BaseAPIUrl, $NextLink }
+                } else {
+                    $CurrentUrl = $null
                 }
+
+                $PageSuccess = $true
             }
             catch {
-                # In case of failure in parsing JSON or accessing properties
-                $message = "Error processing error details"
-            }
+                try {
+                    $errorDetails = $_.ErrorDetails | ConvertFrom-Json
+                    if ($errorDetails.messages -and $errorDetails.messages[0].text) {
+                        $message = $errorDetails.messages[0].text
+                    }
+                    elseif ($errorDetails.error) {
+                        $message = $errorDetails.error
+                    }
+                    else {
+                        $message = "Unknown error occurred"
+                    }
+                }
+                catch {
+                    $message = "Error processing error details"
+                }
 
-            # Log the error message
-            Write-Error ("HTTP {0} {1}: {2}" -f ($_.Exception.Response.StatusCode.value__), ($_.Exception.Response.StatusCode.ToString()), $message)
-            if ($_.Exception.Response.StatusCode.value__ -match '^5\d{2}$' -and $RetryCount -lt $MaxRetries) {
-                $RetryCount += 1
-                Write-Verbose "Retry attempt $RetryCount after a $PauseDuration second pause..."
-                Start-Sleep -Seconds $PauseDuration
-            }
-            else {
-                $SendCall = $false
-                Remove-Variable -Name Headers -Force
-                throw "Failed to retrieve data after $RetryCount attempts."
+                $StatusCode = $_.Exception.Response.StatusCode.value__
+                $StatusText = $_.Exception.Response.StatusCode.ToString()
+                Write-Warning ("HTTP {0} {1}: {2}" -f $StatusCode, $StatusText, $message)
+
+                if (
+                    ($StatusCode -match '^5\d{2}$' -or $StatusCode -eq "429" )-and $RetryCount -lt $MaxRetries
+                ) {
+                    $RetryCount += 1
+                    Write-Verbose "Retry attempt $RetryCount after a $PauseDuration second pause..."
+                    Start-Sleep -Seconds $PauseDuration
+                }
+                else {
+                    Remove-Variable -Name Headers -Force -ErrorAction SilentlyContinue
+                    throw "Failed to retrieve data after $RetryCount attempts."
+                }
             }
         }
     }
-    # Return all results
-    Remove-Variable -Name Headers -Force
-    Write-Output $AllResults
+
+    Remove-Variable -Name Headers -Force -ErrorAction SilentlyContinue
 }
