@@ -23,14 +23,12 @@ function Get-ABMJWT {
     )
 
     # Replace these with your actual Apple values:
-    $client_id = $ClientId
     $team_id = $ClientId
-    $key_id = $KeyId
     $audience = "https://account.apple.com/auth/oauth2/v2/token"
     $alg = "ES256"
 
     # Load the private key PEM content
-    $privateKeyPem = Get-Content -Raw -Path $keyPath
+    $privateKeyPem = Get-Content -Raw -Path $KeyPath
 
     # Extract base64 key by removing PEM headers/footers and whitespace
     $base64Key = ($privateKeyPem -replace '-----.*-----', '') -replace '\s', ''
@@ -44,14 +42,14 @@ function Get-ABMJWT {
     # JWT Header (keep order consistent)
     $header = [ordered]@{
         alg = $alg
-        kid = $key_id
+        kid = $KeyId
         typ = "JWT"
     }
 
     # JWT Payload with iat and exp (180 days max)
     $now = Get-Date
     $payload = [ordered]@{
-        sub = $client_id
+        sub = $ClientId
         aud = $audience
         iat = Get-UnixTime $now
         exp = Get-UnixTime $now.AddDays(180)
