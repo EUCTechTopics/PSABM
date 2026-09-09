@@ -36,7 +36,6 @@
     Connects to Apple School Manager using a private key string variable.
 #>
 function Connect-ABM {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
     [CmdletBinding(
         SupportsShouldProcess = $False,
         ConfirmImpact = "None",
