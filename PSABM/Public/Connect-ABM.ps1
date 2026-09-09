@@ -83,22 +83,6 @@ function Connect-ABM {
 
     $script:ABMEnv = Get-ABMEnvironment @Parameters
 
-    # Concatenate full version string with prerelease label if present
-    if ($MyInvocation.MyCommand.Module -and
-        $MyInvocation.MyCommand.Module.PrivateData -and
-        $MyInvocation.MyCommand.Module.PrivateData.PSData) {
-        $PrereleaseLabel = $MyInvocation.MyCommand.Module.PrivateData.PSData['Prerelease']
-    }
-    else {
-        $PrereleaseLabel = $null
-    }
-    $ModuleVersion = $MyInvocation.MyCommand.Module.Version
-    if (-not [string]::isNullOrEmpty($PrereleaseLabel)) {
-        $VersionString = ("{0}-{1}" -f $ModuleVersion, $PrereleaseLabel)
-    }
-    else {
-        $VersionString = $ModuleVersion
-    }
     # Build formatted output using a here-string for alignment
     $ABMInfo = @"
 
