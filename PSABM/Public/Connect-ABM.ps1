@@ -1,3 +1,40 @@
+<#
+.SYNOPSIS
+    Connects to the Apple Business Manager or Apple School Manager API.
+
+.DESCRIPTION
+    Authenticates and initializes a session with the Apple Business Manager or Apple School Manager API using API credentials.
+    The function supports supplying the private key either directly as a string or via a local file path.
+
+.PARAMETER Environment
+    Specifies the target Apple portal environment. Valid values are 'Business Manager' and 'School Manager'.
+    Default is 'Business Manager'.
+
+.PARAMETER KeyPath
+    The file path to the private key file used for authentication.
+
+.PARAMETER Key
+    The raw string content of the private key used for authentication.
+
+.PARAMETER ClientId
+    The Client ID provided by Apple.
+
+.PARAMETER KeyId
+    The Key ID associated with the private key in Apple Business/School Manager.
+
+.PARAMETER APIVersion
+    The API version to target. Default is 'v1'.
+
+.EXAMPLE
+    Connect-ABM -KeyPath 'C:\Keys\AuthKey.pem' -ClientId '12345678-abcd-1234-abcd-1234567890ab' -KeyId 'ABC123XYZ'
+    
+    Connects to Apple Business Manager using a private key file.
+
+.EXAMPLE
+    Connect-ABM -Environment 'School Manager' -Key $PrivateKeyContent -ClientId '12345678-abcd-1234-abcd-1234567890ab' -KeyId 'ABC123XYZ'
+    
+    Connects to Apple School Manager using a private key string variable.
+#>
 function Connect-ABM {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
     [CmdletBinding(
