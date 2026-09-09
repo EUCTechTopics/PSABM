@@ -16,26 +16,17 @@ Install-Module -Name PSABM -AllowPrerelease
 
 To use the SDK with your Apple Business Manager tenant, you must configure authentication by providing the required environment variables
 
-1. **Set Environment Variables**
+1. **Connect to Apple Business Manager**
 
-   Set the following environment variables to authenticate to your Apple Business Manager tenant:
-
-   ``` powershell
-   $env:ABM_CLIENT_ID=[clientID]
-   $env:ABM_KEY_ID=[keyID]
-   ```
-
-   Replace `[clientID]`, and `[keyID]` with your specific values.
-
-2. **Connect to Apple Business Manager**
-
-   Use the `Connect-ABM -KeyPath [path to your PEM file]` command to authenticate with the Apple Business Manager API.
+   Use the `Connect-ABM` command to authenticate with the Apple Business Manager API.
 
    ```powershell
-   Connect-ABM -KeyPath '~/.abm/privkey.pem'
+   Connect-ABM -KeyPath '~/.abm/privkey.pem' `
+      -KeyId '[keyID]' `
+      -ClientId '[clientID]'
    ```
 
-3. **Retrieve Devices in Apple Business Manager**
+2. **Retrieve Devices in Apple Business Manager**
 
    Use the `Get-ABMObject` command to retrieve objects from the Apple Business Manager API.
 
