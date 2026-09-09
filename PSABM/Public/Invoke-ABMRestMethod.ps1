@@ -1,36 +1,53 @@
 <#
-    .SYNOPSIS
-        Invoke the ABM REST API.
+.SYNOPSIS
+    Invokes a REST API request against the Apple Business Manager (ABM) or Apple School Manager (ASM) API.
 
-    .DESCRIPTION
-        This function is used to invoke a REST method to the ABM API. It will handle pagination and retries.
+.DESCRIPTION
+    Executes HTTP requests against Apple API endpoints using an active connection. Handles automatic 
+    cursor-based pagination for multi-page responses, streaming parsed JSON objects directly to the 
+    PowerShell pipeline. 
+    
+    Includes built-in resilience features:
+    - Proactive request pacing between pages to prevent rate limits.
+    - Automatic exponential backoff retries for HTTP 429 (Too Many Requests) and HTTP 5xx (Server Errors).
+    - Automatic Content-Type adjustment for PATCH operations.
 
-    .PARAMETER Url
-        The relative URL to call.
+.PARAMETER Url
+    The relative API endpoint path to call (e.g., '/orgDevices'). This is appended to the base API URL 
+    configured during session connection.
 
-    .PARAMETER Method
-        The HTTP method to use.
+.PARAMETER Method
+    The HTTP method to execute. Valid values are 'GET', 'PATCH', 'POST', 'PUT', and 'DELETE'.
+    Default is 'GET'.
 
-    .PARAMETER Body
-        The body of the request.
+.PARAMETER Body
+    The HTTP request body payload as a formatted string (typically JSON) for POST, PUT, or PATCH operations.
 
-    .PARAMETER ContentType
-        The content type of the request.
+.PARAMETER ContentType
+    The Content-Type header of the request. Defaults to 'application/json'. 
+    Note: The function automatically overrides this to 'application/json-patch+json' when Method is 'PATCH'.
 
-    .PARAMETER MaxRetries
-        The maximum number of retries to attempt.
+.PARAMETER MaxRetries
+    The maximum number of retry attempts to perform when encountering transient errors (HTTP 429 or HTTP 5xx).
+    Default is 4.
 
-    .PARAMETER PauseDuration
-        The duration to pause between retries.
+.PARAMETER PauseDuration
+    The base multiplier in seconds used for exponential backoff calculations during retries.
+    Default is 2.
 
-    .EXAMPLE
-        Invoke-ABMRestMethod -Url '/orgDevices' -Method 'GET'
+.PARAMETER ThrottleDelayMs
+    The pause duration in milliseconds injected between sequential pagination requests to proactively prevent hitting API rate limits.
+    Default is 250.
 
-    .INPUTS
-        None
+.EXAMPLE
+    Invoke-ABMRestMethod -Url '/orgDevices?limit=1000'
 
-    .OUTPUTS
-        System.Object[]
+    Executes a GET request to retrieve organization devices, automatically paging through all available results 
+    and outputting each device object to the pipeline.
+
+.OUTPUTS
+    System.Management.Automation.PSCustomObject
+    Streams parsed JSON response data objects directly to the PowerShell pipeline.
 #>
 
 function Invoke-ABMRestMethod {
