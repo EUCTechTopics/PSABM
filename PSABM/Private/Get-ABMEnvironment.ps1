@@ -12,8 +12,7 @@ function Get-ABMEnvironment {
         $Environment,
 
         [Parameter(Mandatory = $true)]
-        [ValidateScript({ Test-Path $_ })]
-        [String] $KeyPath,
+        [String] $Key,
 
         [Parameter(Mandatory = $true)]
         [String] $ClientId,
@@ -41,7 +40,7 @@ function Get-ABMEnvironment {
     }
 
     # Get JWT
-    $client_assertion = Get-ABMJWT -ClientId $ClientId -KeyId $KeyId -KeyPath $KeyPath
+    $client_assertion = Get-ABMJWT -ClientId $ClientId -KeyId $KeyId -Key $Key
 
     $sessiontokendata = @{
         tokenUrl        = "https://account.apple.com/auth/oauth2/token"

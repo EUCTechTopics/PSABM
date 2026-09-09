@@ -7,28 +7,39 @@ function Connect-ABM {
         PositionalBinding = $True)
     ]
     param (
-        [Parameter(Mandatory = $false)]
+        [Parameter(ParameterSetName = 'Path')]
+        [Parameter(ParameterSetName = 'Key')]
         [ValidateSet("Business Manager", "School Manager")]
         [String] $Environment = "Business Manager",
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory, ParameterSetName = 'Path')]
         [ValidateScript({ Test-Path $_ })]
         [String] $KeyPath,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory, ParameterSetName = 'Key')]
+        [String] $Key,
+
+        [Parameter(Mandatory, ParameterSetName = 'Path')]
+        [Parameter(Mandatory, ParameterSetName = 'Key')]
         [String] $ClientId,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory, ParameterSetName = 'Path')]
+        [Parameter(Mandatory, ParameterSetName = 'Key')]
         [String] $KeyId,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(ParameterSetName = 'Path')]
+        [Parameter(ParameterSetName = 'Key')]
         [ValidateSet("v1")]
         [String] $APIVersion = 'v1'
     )
 
+    if($PSCmdlet.ParameterSetName -eq 'Path') {
+        $Key = Get-Content -Raw -Path $KeyPath
+    }
+
     $Parameters = @{
         Environment         = $Environment
-        KeyPath             = $KeyPath
+        Key                 = $Key
         APIVersion          = $APIVersion
         KeyId               = $KeyId
         ClientId            = $ClientId

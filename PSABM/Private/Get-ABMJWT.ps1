@@ -9,17 +9,13 @@ function Get-ABMJWT {
 
     param (
         [Parameter(Mandatory = $true)]
-        [String]
-        $ClientId,
+        [String] $ClientId,
 
         [Parameter(Mandatory = $true)]
-        [String]
-        $KeyId,
+        [String] $KeyId,
 
         [Parameter(Mandatory = $true)]
-        [ValidateScript({ Test-Path $_ })]
-        [String]
-        $KeyPath
+        [String] $Key
     )
 
     # Replace these with your actual Apple values:
@@ -27,11 +23,8 @@ function Get-ABMJWT {
     $audience = "https://account.apple.com/auth/oauth2/v2/token"
     $alg = "ES256"
 
-    # Load the private key PEM content
-    $privateKeyPem = Get-Content -Raw -Path $KeyPath
-
     # Extract base64 key by removing PEM headers/footers and whitespace
-    $base64Key = ($privateKeyPem -replace '-----.*-----', '') -replace '\s', ''
+    $base64Key = ($Key -replace '-----.*-----', '') -replace '\s', ''
     $keyBytes = [Convert]::FromBase64String($base64Key)
 
     # Create ECDsa instance and import PKCS#8 private key
