@@ -32,9 +32,5 @@ function Get-ABMObject {
 
     # Invoke the API
     $Splat.Add('Url', $url)
-    if ($UrlParams) { $Splat.Add('UrlParams', $UrlParams) }
-    $response = Invoke-ABMRestMethod @Splat
-
-    # Return the object
-    return $response
+    Invoke-ABMRestMethod @Splat
 }

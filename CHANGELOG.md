@@ -10,3 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Initial Version
+
+
+## 0.0.2 - 2026-09-09
+
+### Changed
+
+- Moved ClientId and KeyId from enviroment varibles to parameter
+
+### Added
+
+- Added paging support for `Invoke-ABMRestMethod`

@@ -12,18 +12,18 @@ function Get-ABMEnvironment {
         $Environment,
 
         [Parameter(Mandatory = $true)]
-        [ValidateScript({ Test-Path $_ })]
-        [String]
-        $KeyPath,
+        [String] $Key,
+
+        [Parameter(Mandatory = $true)]
+        [String] $ClientId,
+
+        [Parameter(Mandatory = $true)]
+        [String] $KeyId,
 
         [Parameter(Mandatory = $false)]
         [ValidateSet("v1")]
         [String]
-        $APIVersion = "v1",
-
-        [Parameter(Mandatory = $true)]
-        [Switch]
-        $UseSecretManagement
+        $APIVersion = "v1"
     )
 
     switch ($Environment) {
@@ -39,16 +39,12 @@ function Get-ABMEnvironment {
         }
     }
 
-    # Set client_id, key_id needed to get JWT
-    $client_id = Get-ABMSecret -Name "$($Instance)-CLIENT-ID" -AsPlainText -UseSecretManagement:$UseSecretManagement
-    $key_id = Get-ABMSecret -Name "$($Instance)-KEY-ID" -AsPlainText -UseSecretManagement:$UseSecretManagement
-
     # Get JWT
-    $client_assertion = Get-ABMJWT -ClientId $client_id -KeyId $key_id -KeyPath $KeyPath
+    $client_assertion = Get-ABMJWT -ClientId $ClientId -KeyId $KeyId -Key $Key
 
     $sessiontokendata = @{
         tokenUrl        = "https://account.apple.com/auth/oauth2/token"
-        clientId         = $client_id
+        clientId         = $ClientId
         jwt              = $client_assertion
         scope            = $Scope
     }
@@ -57,8 +53,8 @@ function Get-ABMEnvironment {
 
     $output = [PSCustomObject]@{
         Instance            = $Instance
-        ClientId            = $client_id
-        KeyId               = $key_id
+        ClientId            = $ClientId
+        KeyId               = $KeyId
         BaseUrl             = $BaseUrl
         BaseAPIUrl          = ('{0}/{1}' -f $BaseUrl, $APIVersion)
         SessionToken        = $SessionToken.access_token
