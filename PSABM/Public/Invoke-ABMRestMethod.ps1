@@ -55,10 +55,13 @@ function Invoke-ABMRestMethod {
         [String] $ContentType = "application/json",
 
         [Parameter(Mandatory = $false)]
-        [Int] $MaxRetries = 3,
+        [Int] $MaxRetries = 4,
 
         [Parameter(Mandatory = $false)]
-        [Int] $PauseDuration = 2
+        [Int] $PauseDuration = 2,
+
+        [Parameter(Mandatory = $false)]
+        [Int] $ThrottleDelayMs = 250
     )
 
     Test-ABMConnection
@@ -81,6 +84,7 @@ function Invoke-ABMRestMethod {
         $RetryCount = 0
         $PageSuccess = $false
 
+        # Retry Loop for Current Page
         while (-not $PageSuccess) {
             try {
                 $Splat = @{
@@ -91,7 +95,7 @@ function Invoke-ABMRestMethod {
                 }
                 if ($Body) { $Splat.Add('Body', $Body) }
 
-                # Directly returns deserialized JSON objects
+                Write-Verbose ("API Call [{0}]: {1}" -f $Method, $CurrentUrl)
                 $Results = Invoke-RestMethod @Splat -Verbose:$false -Debug:$false
 
                 # Stream results to pipeline immediately
@@ -101,10 +105,15 @@ function Invoke-ABMRestMethod {
                     $Results
                 }
 
-                # Evaluate JSON:API pagination link
+                # Evaluate pagination
                 if ($Method -eq "GET" -and $Results.links -and $Results.links.next) {
                     $NextLink = $Results.links.next
                     $CurrentUrl = if ($NextLink -like "http*") { $NextLink } else { "{0}{1}" -f $script:ABMEnv.BaseAPIUrl, $NextLink }
+
+                    if ($ThrottleDelayMs -gt 0) {
+                        Write-Verbose ("Pacing pagination: Waiting {0} ms..." -f $ThrottleDelayMs)
+                        Start-Sleep -Milliseconds $ThrottleDelayMs
+                    }
                 } else {
                     $CurrentUrl = $null
                 }
@@ -112,36 +121,42 @@ function Invoke-ABMRestMethod {
                 $PageSuccess = $true
             }
             catch {
-                try {
-                    $errorDetails = $_.ErrorDetails | ConvertFrom-Json
-                    if ($errorDetails.messages -and $errorDetails.messages[0].text) {
-                        $message = $errorDetails.messages[0].text
-                    }
-                    elseif ($errorDetails.error) {
-                        $message = $errorDetails.error
-                    }
-                    else {
-                        $message = "Unknown error occurred"
-                    }
-                }
-                catch {
-                    $message = "Error processing error details"
-                }
 
-                $StatusCode = $_.Exception.Response.StatusCode.value__
-                $StatusText = $_.Exception.Response.StatusCode.ToString()
-                Write-Warning ("HTTP {0} {1}: {2}" -f $StatusCode, $StatusText, $message)
+                $StatusCode = if ($_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { 0 }
 
-                if (
-                    ($StatusCode -match '^5\d{2}$' -or $StatusCode -eq "429" )-and $RetryCount -lt $MaxRetries
-                ) {
-                    $RetryCount += 1
-                    Write-Verbose "Retry attempt $RetryCount after a $PauseDuration second pause..."
-                    Start-Sleep -Seconds $PauseDuration
+                # Retry on HTTP 429 (Rate Limit) or 5xx (Server Errors)
+                if (($StatusCode -eq 429 -or ($StatusCode -ge 500 -and $StatusCode -le 599)) -and $RetryCount -lt $MaxRetries) {
+                    $RetryCount++
+                    $WaitSeconds = [math]::Pow(2, $RetryCount) * $PauseDuration
+                    
+                    # Increase throttle delay for subsequent retries if rate limited
+                    if ($StatusCode -eq 429 -and $ThrottleDelayMs -lt 5000) {
+                        $ThrottleDelayMs += 250
+                    }
+
+                    Write-Verbose ("HTTP {0} encountered. Retrying in {1}s (Attempt {2}/{3})..." -f $StatusCode, $WaitSeconds, $RetryCount, $MaxRetries)
+                    Start-Sleep -Seconds $WaitSeconds
                 }
                 else {
+                    # Extract error details from API response body if available
+                    $message = try {
+                        $errObj = $_.ErrorDetails | ConvertFrom-Json
+                        if ($errObj.errors[0].detail) {
+                            $errObj.errors[0].detail
+                        } elseif ($errObj.messages[0].text) {
+                            $errObj.messages[0].text
+                        } elseif ($errObj.error) {
+                            $errObj.error
+                        } else {
+                            $_.Exception.Message
+                        }
+                    } catch {
+                        $_.Exception.Message
+                    }
+
+                    Write-Error ("HTTP {0}: {1}" -f $StatusCode, $message)
                     Remove-Variable -Name Headers -Force -ErrorAction SilentlyContinue
-                    throw "Failed to retrieve data after $RetryCount attempts."
+                    throw "Request failed with HTTP $StatusCode after $RetryCount retry attempt(s)."
                 }
             }
         }
