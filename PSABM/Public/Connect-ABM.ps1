@@ -27,12 +27,12 @@
 
 .EXAMPLE
     Connect-ABM -KeyPath 'C:\Keys\AuthKey.pem' -ClientId '12345678-abcd-1234-abcd-1234567890ab' -KeyId 'ABC123XYZ'
-    
+
     Connects to Apple Business Manager using a private key file.
 
 .EXAMPLE
     Connect-ABM -Environment 'School Manager' -Key $PrivateKeyContent -ClientId '12345678-abcd-1234-abcd-1234567890ab' -KeyId 'ABC123XYZ'
-    
+
     Connects to Apple School Manager using a private key string variable.
 #>
 function Connect-ABM {

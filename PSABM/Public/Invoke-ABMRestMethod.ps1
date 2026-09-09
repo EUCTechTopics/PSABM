@@ -3,17 +3,17 @@
     Invokes a REST API request against the Apple Business Manager (ABM) or Apple School Manager (ASM) API.
 
 .DESCRIPTION
-    Executes HTTP requests against Apple API endpoints using an active connection. Handles automatic 
-    cursor-based pagination for multi-page responses, streaming parsed JSON objects directly to the 
-    PowerShell pipeline. 
-    
+    Executes HTTP requests against Apple API endpoints using an active connection. Handles automatic
+    cursor-based pagination for multi-page responses, streaming parsed JSON objects directly to the
+    PowerShell pipeline.
+
     Includes built-in resilience features:
     - Proactive request pacing between pages to prevent rate limits.
     - Automatic exponential backoff retries for HTTP 429 (Too Many Requests) and HTTP 5xx (Server Errors).
     - Automatic Content-Type adjustment for PATCH operations.
 
 .PARAMETER Url
-    The relative API endpoint path to call (e.g., '/orgDevices'). This is appended to the base API URL 
+    The relative API endpoint path to call (e.g., '/orgDevices'). This is appended to the base API URL
     configured during session connection.
 
 .PARAMETER Method
@@ -24,7 +24,7 @@
     The HTTP request body payload as a formatted string (typically JSON) for POST, PUT, or PATCH operations.
 
 .PARAMETER ContentType
-    The Content-Type header of the request. Defaults to 'application/json'. 
+    The Content-Type header of the request. Defaults to 'application/json'.
     Note: The function automatically overrides this to 'application/json-patch+json' when Method is 'PATCH'.
 
 .PARAMETER MaxRetries
@@ -42,7 +42,7 @@
 .EXAMPLE
     Invoke-ABMRestMethod -Url '/orgDevices?limit=1000'
 
-    Executes a GET request to retrieve organization devices, automatically paging through all available results 
+    Executes a GET request to retrieve organization devices, automatically paging through all available results
     and outputting each device object to the pipeline.
 
 .OUTPUTS
@@ -145,7 +145,7 @@ function Invoke-ABMRestMethod {
                 if (($StatusCode -eq 429 -or ($StatusCode -ge 500 -and $StatusCode -le 599)) -and $RetryCount -lt $MaxRetries) {
                     $RetryCount++
                     $WaitSeconds = [math]::Pow(2, $RetryCount) * $PauseDuration
-                    
+
                     # Increase throttle delay for subsequent retries if rate limited
                     if ($StatusCode -eq 429 -and $ThrottleDelayMs -lt 5000) {
                         $ThrottleDelayMs += 250
